@@ -1,0 +1,152 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+class GeminiDocumentGenerator:
+
+    def __init__(self):
+
+        self.api_key = os.getenv("GEMINI_API_KEY")
+
+    def generate_document(
+        self,
+        document_type,
+        parties,
+        terms,
+        dates
+    ):
+
+        if not self.api_key:
+
+            return self.create_demo_document(
+                document_type,
+                parties,
+                terms,
+                dates
+            )
+
+        try:
+
+            import google.generativeai as genai
+
+            genai.configure(
+                api_key=self.api_key
+            )
+
+            model = genai.GenerativeModel(
+                "gemini-1.5-pro"
+            )
+
+            prompt = f"""
+You are a legal document drafting assistant.
+
+Create a professional legal document draft.
+
+Document Type:
+{document_type}
+
+Parties Involved:
+{parties}
+
+Terms and Conditions:
+{terms}
+
+Effective Date:
+{dates}
+
+Requirements:
+
+1. Give the document a clear title.
+2. Include the parties.
+3. Include the effective date.
+4. Organize the document into suitable sections.
+5. Use clear and formal language.
+6. Include the provided terms.
+7. Add signature sections.
+8. Do not invent important facts that were not provided.
+9. Add a short disclaimer that the document should be reviewed
+   by a qualified legal professional.
+
+Generate only the document.
+"""
+
+            response = model.generate_content(prompt)
+
+            return response.text
+
+        except Exception:
+
+            return self.create_demo_document(
+                document_type,
+                parties,
+                terms,
+                dates
+            )
+
+    def create_demo_document(
+        self,
+        document_type,
+        parties,
+        terms,
+        dates
+    ):
+
+        document = f"""
+==================================================
+              {document_type.upper()}
+==================================================
+
+Effective Date:
+{dates}
+
+PARTIES
+--------------------------------------------------
+{parties}
+
+TERMS AND CONDITIONS
+--------------------------------------------------
+{terms}
+
+AGREEMENT
+--------------------------------------------------
+
+The parties agree to the terms and conditions
+described in this document.
+
+The parties confirm that the information provided
+for this document is accurate to the best of their
+knowledge.
+
+SIGNATURES
+--------------------------------------------------
+
+Party 1 Signature: ______________________
+
+Name: __________________________________
+
+Date: __________________________________
+
+
+Party 2 Signature: ______________________
+
+Name: __________________________________
+
+Date: __________________________________
+
+
+DISCLAIMER
+--------------------------------------------------
+
+This document is an automatically generated draft
+for educational and informational purposes. It
+should be reviewed by a qualified legal professional
+before official use.
+
+==================================================
+                 LegalEase
+==================================================
+"""
+
+        return document
